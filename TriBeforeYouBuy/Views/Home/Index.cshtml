@@ -1,0 +1,155 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="container">
+    
+    <div class="row">
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="">Row</span>
+            </div>
+            <select class="form-control" id="cboRow">
+                <option value="0">A</option>
+                <option value="1">B</option>
+                <option value="2">C</option>
+                <option value="3">D</option>
+                <option value="4">E</option>
+                <option value="5">F</option>
+            </select>
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="">Col</span>
+            </div>
+            <select class="form-control" id="cboCol">
+                <option value="0">1</option>
+                <option value="1">2</option>
+                <option value="2">3</option>
+                <option value="3">4</option>
+                <option value="4">5</option>
+                <option value="5">6</option>
+                <option value="6">7</option>
+                <option value="7">8</option>
+                <option value="8">9</option>
+                <option value="9">10</option>
+                <option value="10">11</option>
+                <option value="11">12</option>
+            </select>
+            <div class="input-group-append">
+                <button class="btn btn-primary" type="button" onclick="GetTriangleCoords();">Get triangle coordinates</button>
+            </div>
+
+            </div>
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="">V1</span>
+            </div>
+            <input type="text" placeholder="X,Y" id="txtV1" />
+
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="">V2</span>
+            </div>
+            <input type="text" placeholder="X,Y" id="txtV2" />
+
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="">V3</span>
+            </div>
+            <input type="text" placeholder="X,Y" id="txtV3" />
+
+            <div class="input-group-append">
+                <button class="btn btn-primary" type="button" onclick="GetRowAndColumn();">Get Row and Column</button>
+            </div>
+
+            <input type="text" id="txtRowAndColumn" />
+
+        </div>
+        </div>
+</div>
+
+<br />
+<canvas id="myCanvas" width="60" height="60"></canvas>
+
+
+@section scripts {
+    <script type="text/javascript">
+        function GetTriangleCoords() {
+            var request = {
+                row: document.getElementById('cboRow').value,
+                col: document.getElementById('cboCol').value
+            };            
+
+            $.ajax({
+                url: document.location.origin + '/api/tri/triangle',
+                method: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify(request),
+                success: function (response) {
+                    drawTriangle(response);
+
+                    document.getElementById('txtV1').value = response.v1.x + "," + response.v1.y;
+                    document.getElementById('txtV2').value = response.v2.x + "," + response.v2.y;
+                    document.getElementById('txtV3').value = response.v3.x + "," + response.v3.y;
+                },
+                error: function () {
+                    console.log('GetTriangleCoords error');
+                }
+            });            
+        }
+
+        function GetRowAndColumn() {
+            var lv1 = document.getElementById('txtV1').value.split(',');
+            var lv2 = document.getElementById('txtV2').value.split(',');
+            var lv3 = document.getElementById('txtV3').value.split(',');
+
+            var coords = {
+                v1: { x: lv1[0].trim(), y: lv1[1].trim() },
+                v2: { x: lv2[0].trim(), y: lv2[1].trim() },
+                v3: { x: lv3[0].trim(), y: lv3[1].trim() },
+            }            
+
+            $.ajax({
+                url: document.location.origin + '/api/tri/coords',
+                method: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify(coords),
+                success: function (response) {
+                    document.getElementById('txtRowAndColumn').value = "Row: " + String.fromCharCode(response.row + 65) + ", Col: " + (response.col + 1);
+                },
+                error: function () {
+                    console.log('GetRowAndColumn error');
+                }
+            });
+        }
+
+        var canvasElement;
+        var context;
+
+        $(document).ready(function () {
+            canvasElement = document.querySelector("#myCanvas");
+            context = canvasElement.getContext("2d");
+            context.scale(1,1);
+
+            context.fillStyle = "#FFFFFF";
+            context.fillRect(0, 0, canvasElement.width, canvasElement.height);            
+        });
+
+        function drawTriangle(tri) {
+            // the triangle
+            context.beginPath();
+            context.moveTo(tri.v1.x, tri.v1.y);           
+            context.lineTo(tri.v2.x, tri.v2.y);
+            context.lineTo(tri.v3.x, tri.v3.y);
+            context.closePath();            
+
+            // the outline
+            context.lineWidth = 1;
+            context.strokeStyle = '#FFFFFF';
+            context.stroke();
+
+            // the fill color
+            context.fillStyle = "#5B9BD5";
+            context.fill();
+        }
+    </script>
+}
